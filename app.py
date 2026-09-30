@@ -1,5 +1,5 @@
 """
-EcoFlow Audit - software dashboard for Smart-MatRec
+SolvGuard - software dashboard for RecoVent
 Closed-Loop Solvent Recovery & Automated Mass-Balance Audit System
 ALCHEMI 2026 | Problem Statement 2: Reduction of Industrial Waste
 
@@ -21,12 +21,12 @@ import streamlit as st
 SOLVENT = "Isopropanol (IPA)"
 DENSITY_KG_PER_L = 0.786                      # kg/L at ~20 C
 CO2_PER_KG_IPA = 3 * 44.01 / 60.10            # C3H8O + 4.5 O2 -> 3 CO2 + 4 H2O  (~2.197 kg CO2/kg)
-CAPEX_INR = 350_000                           # Smart-MatRec capital cost
+CAPEX_INR = 350_000                           # RecoVent capital cost
 LEAK_LOSS_L_PER_DAY = 25.0                    # extra loss when a flange leak is active (demo value)
 
 GREEN, RED, GREY, BLUE = "#2e7d32", "#c62828", "#78909c", "#1565c0"
 
-st.set_page_config(page_title="EcoFlow Audit | Smart-MatRec", page_icon="♻️", layout="wide")
+st.set_page_config(page_title="SolvGuard | RecoVent", page_icon="🛡️", layout="wide")
 
 
 # --------------------------------------------------------------------------
@@ -67,8 +67,8 @@ def mass_balance(feed, product, recovery_pct, leak_l=0.0):
 # --------------------------------------------------------------------------
 # Sidebar inputs
 # --------------------------------------------------------------------------
-st.sidebar.title("♻️ EcoFlow Audit")
-st.sidebar.caption("Smart-MatRec | Solvent: " + SOLVENT)
+st.sidebar.title("🛡️ SolvGuard")
+st.sidebar.caption("RecoVent | Solvent: " + SOLVENT)
 
 st.sidebar.header("1. Mass-balance inputs")
 feed = st.sidebar.number_input("Total Raw Solvent Input (L/day)", min_value=50.0, max_value=20000.0,
@@ -85,7 +85,7 @@ op_days = st.sidebar.slider("Operating Days / Year", 150, 365, 300, 5)
 
 with st.sidebar.expander("Advanced assumptions"):
     conv_recovery_pct = st.slider("Conventional plant recovery (%)", 0, 60, 0,
-                                  help="Recovery already achieved WITHOUT Smart-MatRec (0 = all waste solvent vented/disposed).")
+                                  help="Recovery already achieved WITHOUT RecoVent (0 = all waste solvent vented/disposed).")
     reuse_yield = st.slider("Reuse yield of recovered solvent (%)", 70, 100, 90,
                             help="Fraction of recovered solvent that meets spec and returns to the process.")
     opex_day = st.number_input("Recovery OpEx (₹/day)", min_value=0.0, value=2500.0, step=100.0,
@@ -120,11 +120,11 @@ annual_cost_new = (feed - reused_new) * solvent_cost * op_days + opex_day * op_d
 # --------------------------------------------------------------------------
 # Header + tabs
 # --------------------------------------------------------------------------
-st.title("EcoFlow Audit: Live Solvent Mass-Balance Dashboard")
-st.caption("Smart-MatRec | Closed-Loop Solvent Recovery & Automated Mass-Balance Audit System")
+st.title("SolvGuard: Live Solvent Mass-Balance Dashboard")
+st.caption("RecoVent | Closed-Loop Solvent Recovery & Automated Mass-Balance Audit System")
 
 tab_mb, tab_alert, tab_roi, tab_cmp, tab_exp = st.tabs(
-    ["⚖️ Mass Balance", "🚨 Anomaly & Leak Alerts", "💰 ROI & Environment", "📊 Conventional vs Smart-MatRec",
+    ["⚖️ Mass Balance", "🚨 Anomaly & Leak Alerts", "💰 ROI & Environment", "📊 Conventional vs RecoVent",
      "📄 Audit Report"])
 
 # ---- 1. Mass balance -------------------------------------------------------
@@ -228,7 +228,7 @@ with tab_roi:
     e3.metric("Fresh solvent avoided", f"{(reused_new - reused_conv) * op_days / 1000:,.1f} kL/year")
     with st.expander("Calculation basis"):
         st.markdown(
-            f"- Daily savings = (Reused solvent, Smart-MatRec − Reused solvent, conventional) x ₹/L − OpEx = "
+            f"- Daily savings = (Reused solvent, RecoVent − Reused solvent, conventional) x ₹/L − OpEx = "
             f"({reused_new:,.1f} − {reused_conv:,.1f}) x {solvent_cost} − {opex_day:,.0f} = **{inr(net_saving_day)}**\n"
             f"- Payback (months) = CapEx / (Annual savings / 12) = {CAPEX_INR:,} / ({net_saving_year:,.0f} / 12)\n"
             f"- CO2e = extra solvent recovered x {DENSITY_KG_PER_L} kg/L x air-loss share x {CO2_PER_KG_IPA:.3f} kg CO2/kg IPA "
@@ -238,10 +238,10 @@ with tab_roi:
 
 # ---- 4. Comparison charts -----------------------------------------------------
 with tab_cmp:
-    st.subheader("Conventional Process vs Smart-MatRec")
+    st.subheader("Conventional Process vs RecoVent")
     k1, k2 = st.columns(2)
 
-    loss_fig = go.Figure(go.Bar(x=["Conventional", "Smart-MatRec"],
+    loss_fig = go.Figure(go.Bar(x=["Conventional", "RecoVent"],
                                 y=[conv["unaccounted"], new["unaccounted"]],
                                 marker_color=[RED, GREEN],
                                 text=[f"{conv['unaccounted']:,.0f}", f"{new['unaccounted']:,.0f}"],
@@ -249,7 +249,7 @@ with tab_cmp:
     loss_fig.update_layout(title="Material loss (L/day)", height=380, yaxis_title="L/day")
     k1.plotly_chart(loss_fig, use_container_width=True)
 
-    cost_fig = go.Figure(go.Bar(x=["Conventional", "Smart-MatRec"],
+    cost_fig = go.Figure(go.Bar(x=["Conventional", "RecoVent"],
                                 y=[annual_cost_conv, annual_cost_new],
                                 marker_color=[RED, GREEN],
                                 text=[inr(annual_cost_conv), inr(annual_cost_new)],
@@ -262,7 +262,7 @@ with tab_cmp:
     cum_new = CAPEX_INR + annual_cost_new / 12 * months
     cum_fig = go.Figure()
     cum_fig.add_scatter(x=months, y=cum_conv, name="Conventional", line=dict(color=RED))
-    cum_fig.add_scatter(x=months, y=cum_new, name="Smart-MatRec (incl. CapEx)", line=dict(color=GREEN))
+    cum_fig.add_scatter(x=months, y=cum_new, name="RecoVent (incl. CapEx)", line=dict(color=GREEN))
     cum_fig.update_layout(title="Cumulative cost: break-even where the lines cross", height=380,
                           xaxis_title="Months", yaxis_title="₹")
     st.plotly_chart(cum_fig, use_container_width=True)
@@ -310,5 +310,5 @@ with tab_exp:
     st.dataframe(log_df, use_container_width=True, height=300)
     st.download_button("⬇️ Download Mass-Balance Audit CSV",
                        data=log_df.to_csv(index=False).encode("utf-8"),
-                       file_name=f"smart_matrec_mass_balance_{dt.date.today().isoformat()}.csv",
+                       file_name=f"solvguard_mass_balance_{dt.date.today().isoformat()}.csv",
                        mime="text/csv")
